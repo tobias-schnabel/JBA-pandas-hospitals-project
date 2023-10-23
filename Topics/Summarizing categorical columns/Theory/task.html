@@ -1,0 +1,104 @@
+<h2>Summarizing categorical columns</h2>
+<div class="step-text">
+<p><code class="language-python">pandas</code> is famous for its analytical tools. When we need to compare datasets or evaluate the data that is grouped by categories, we need to refer to the summary statistics. Entry-by-entry data comparison is impractical. Moreover, an analyst should describe the myriad of small data discrepancies in more general terms. Let's take a look at the most basic possible discrepancies – <strong>quantity discrepancies</strong>.</p>
+<h5 id="counting">Counting</h5>
+<p>At first, we need to import <code class="language-python">pandas</code>. In this topic, we are going to use the Palmer penguins dataset. You can import it with one line from GitHub (requires internet connection):</p>
+<pre><code class="language-python">import pandas as pd
+df = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv')</code></pre>
+<p>Column names are self-explanatory:</p>
+<pre><code class="language-python">df.head(3)</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">+----+-----------+-----------+------------------+-----------------+---------------------+---------------+--------+
+|    | species   | island    |   bill_length_mm |   bill_depth_mm |   flipper_length_mm |   body_mass_g | sex    |
+|----+-----------+-----------+------------------+-----------------+---------------------+---------------+--------|
+|  0 | Adelie    | Torgersen |             39.1 |            18.7 |                 181 |          3750 | MALE   |
+|  1 | Adelie    | Torgersen |             39.5 |            17.4 |                 186 |          3800 | FEMALE |
+|  2 | Adelie    | Torgersen |             40.3 |            18   |                 195 |          3250 | FEMALE |
++----+-----------+-----------+------------------+-----------------+---------------------+---------------+--------+</code></pre>
+<p> </p>
+<p style="text-align: center;"><img alt="The R Palmer Penguins logo" height="162" name="logo.png" src="https://ucarecdn.com/878fb833-de33-48c5-86b7-8b88076f4cc2/" width="140"/></p>
+<p>Once the dataset is imported, we need to count the following values:</p>
+<ol>
+<li>Non-null values,</li>
+<li>Missing values,</li>
+<li>All values, including the missing values,</li>
+<li>The number of unique values.</li>
+</ol>
+<p>We can calculate those values not only for the numeric but also for categorical data.</p>
+<p><strong>1. Non-nulls</strong></p>
+<p>How many non-NA values do we have in the column "sex"? To make it really neat and simple, use the <code class="language-python">Series.count()</code> method:</p>
+<pre><code class="language-python">df.sex.count()</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">333</code></pre>
+<p><strong>2. Nulls</strong></p>
+<p>To count the missing values in the column "sex", we need to take a bit more complex approach. By using <code class="language-python">Series.isna()</code>, we'll get a boolean object, where NaN values are mapped as <code class="language-python">True</code>, and everything else as <code class="language-python">False</code>.</p>
+<pre><code class="language-python">df.sex.isna()
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">0      False
+1      False
+2      False
+3       True
+4      False
+       ...  
+339     True
+340    False
+341    False
+342    False
+343    False
+Name: sex, Length: 344, dtype: bool</code></pre>
+<p>Keep in mind that <code class="language-python">True</code> and <code class="language-python">False</code> in Python are like 1 and 0, respectively. So, to count all the missing values, we need to find the sum of the <code class="language-python">.isna()</code> output. For this purpose, we'll use <code class="language-python">DataFrame.sum()</code>. Let's combine those two methods in one line:</p>
+<pre><code class="language-python">df.sex.isna().sum()
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">11</code></pre>
+<p>The "sex" column contains eleven missing values.</p>
+<p><strong>3. All values</strong></p>
+<p>Next, we need to count the total number of observations. The overall number of cells in a column is the column length. To output it, we will use the <code class="language-python">DataFrame.shape</code> attribute and take its first element (the number of rows):</p>
+<pre><code class="language-python">df.shape[0]
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">344</code></pre>
+<p>We have 344 observations in total.</p>
+<p></p><div class="alert alert-primary"> Note that <code class="language-python">.shape</code> is an attribute, not a method<em>. </em>You cannot call it, so no parentheses are needed. </div>
+<p><strong>4. Unique values</strong></p>
+<p>Suppose we want to find the number of unique penguin species that were studied on the Palmer Archipelago. It is similar to <code class="language-python">COUNT DISTINCT</code> used in SQL. To do it, we will use the <code class="language-python">Series.nunique()</code> method:</p>
+<pre><code class="language-python">df.species.nunique()
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">3</code></pre>
+<p>There are three species. You could have guessed it already by looking at the picture at the start of this topic :)</p>
+<h5 id="seriesvalue_counts-seriesunique">Series.value_counts &amp; Series.unique</h5>
+<p>You can also easily find the frequency of each unique value. It can be useful for categorical columns, like species. Let's find how many specimens of each species are included in the dataset using <code class="language-python">.value_counts()</code>:</p>
+<pre><code class="language-python">df.species.value_counts()
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">Adelie       152
+Gentoo       124
+Chinstrap     68
+Name: species, dtype: int64</code></pre>
+<p>This is a very useful method! You don't need <code class="language-python">pandas</code> grouping or aggregations. Note that the result is a Series with a unique value as the index and a number as the value. So we can, for example, find particular entries in it:</p>
+<pre><code class="language-python">df.species.value_counts().loc[['Adelie', 'Chinstrap']]
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">Adelie       152
+Chinstrap     68
+Name: species, dtype: int64</code></pre>
+<p>But sometimes what we need is just a list of unique values. To achieve it, use <code class="language-python">.unique()</code>:</p>
+<pre><code class="language-python">df.species.unique()
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">array(['Adelie', 'Chinstrap', 'Gentoo'], dtype=object)</code></pre>
+<p>It produces the list. Note that it is a <code class="language-python">NumPy</code> array, but you can iterate through it or index it like a simple Python list. For example, let's add "The" and "penguin" to it:</p>
+<pre><code class="language-python">[('The ' + species + ' penguin') for species in df.species.unique()]
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-no-highlight">['The Adelie penguin', 'The Chinstrap penguin', 'The Gentoo penguin']</code></pre>
+<p>Neat! Now you are ready to move on to more complex comparing measures.</p>
+<h5 id="conclusion">Conclusion</h5>
+<p>Now you know how to:</p>
+<ul>
+<li>count null, non-null, distinct, and all values with <code class="language-python">.isna().sum()</code>, <code class="language-python">.count()</code>, <code class="language-python">.nunique(),</code> and <code class="language-python">.shape[0]</code> methods respectively;</li>
+<li>count the unique values with the <code class="language-python">value_counts()</code> method.</li>
+</ul>
+</div>
